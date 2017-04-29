@@ -27,13 +27,26 @@ int main(void) {
 
     const char * const device = "lo";
 
+#ifdef DEBUG
+	printf("Using device: \"%s\"\n", device);
+#endif
+
 	int port_cnt;
 	uint16_t port_lst[65535] = {0};
 	if ((port_cnt = get_tcp_open_ports(port_lst)) == -1) {
 		exit_with_error(NULL, NULL, "Unable to get open ports");
 	}
 
-    /* Init libnet with raw IPv4 socket */
+#ifdef DEBUG
+	printf("Discovered open ports (%d): [ ", port_cnt);
+	for (int i = 0; i < port_cnt; ++i) {
+		printf("%hu ", port_lst[i]);
+	}
+	printf("]\n");
+	fflush(stdout);
+#endif
+
+	/* Init libnet with raw IPv4 socket */
     char libnet_err_buff[LIBNET_ERRBUF_SIZE];
     libnet_t *l = libnet_init(LIBNET_RAW4, device, libnet_err_buff);
     if (l == NULL) {
@@ -80,6 +93,9 @@ int main(void) {
 		snprintf(filter + strlen(filter), 26, port_exclude_fmt, port_lst[i]);
 	}
 
+#ifdef DEBUG
+	printf("Applying filter: \"%s\"\n", filter);
+#endif
     if (pcap_compile(pcap_handle, &fp, filter, 1, maskp) == -1) {
         exit_with_error(pcap_handle, l, pcap_geterr(pcap_handle));
     }
@@ -103,6 +119,10 @@ int main(void) {
             .tcp_tag = 0
     };
 
+#ifdef DEBUG
+	puts("Waiting for incoming SYN packets...\n");
+#endif
+
     /* Process packets from a filtered live capture */
     if (pcap_loop(pcap_handle, 0, packet_handler, (u_char *) &args) == -1) {
         exit_with_error(pcap_handle, l, pcap_geterr(pcap_handle));
@@ -124,6 +144,7 @@ static void packet_handler(u_char *user_args, const struct pcap_pkthdr *cap_head
     struct libnet_ipv4_hdr *ip = (struct libnet_ipv4_hdr *)(packet + LIBNET_ETH_H);
     struct libnet_tcp_hdr *tcp = (struct libnet_tcp_hdr *)((u_char *)ip + (ip->ip_hl << 2));
 
+#ifdef DEBUG
     printf(
 		"%s:%"PRIu16" > %s:%"PRIu16"\t[seq: %"PRIu32"\tack: %"PRIu32"]\n",
 		libnet_addr2name4(ip->ip_src.s_addr, LIBNET_DONT_RESOLVE),
@@ -132,6 +153,7 @@ static void packet_handler(u_char *user_args, const struct pcap_pkthdr *cap_head
 		ntohs(tcp->th_dport),
 		ntohl(tcp->th_seq), ntohl(tcp->th_ack)
 	);
+#endif
 
     /* Build SYN-ACK response */
     libnet_ptag_t tcp_tag, ipv4_tag;
