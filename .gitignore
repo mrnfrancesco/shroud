@@ -31,3 +31,7 @@
 # Debug files
 *.dSYM/
 *.su
+
+# IDE configuration files
+.idea/*
+cmake-build-debug/
