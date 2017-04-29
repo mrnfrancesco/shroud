@@ -20,7 +20,7 @@ struct packet_handler_args {
 static void packet_handler(u_char *user_args, const struct pcap_pkthdr *cap_header, const u_char *packet);
 static void exit_with_error(pcap_t *pcap_handle, libnet_t *l, const char *err_buff) __attribute__((noreturn));
 
-static int get_tcp_open_ports(u_int16_t *port_lst);
+static int get_tcp_open_ports(uint16_t *port_lst);
 
 
 int main(void) {
@@ -28,7 +28,7 @@ int main(void) {
     const char * const device = "lo";
 
 	int port_cnt;
-	u_int16_t port_lst[65535] = {0};
+	uint16_t port_lst[65535] = {0};
 	if ((port_cnt = get_tcp_open_ports(port_lst)) == -1) {
 		exit_with_error(NULL, NULL, "Unable to get open ports");
 	}
@@ -199,7 +199,7 @@ static void exit_with_error(pcap_t *pcap_handle, libnet_t *l, const char *err_bu
 }
 
 
-static int get_tcp_open_ports(u_int16_t *port_lst) {
+static int get_tcp_open_ports(uint16_t *port_lst) {
 	FILE *fp = NULL;
 	if ((fp = fopen("/proc/net/tcp", "r")) == NULL) {
 		return EXIT_FAILURE;
@@ -217,7 +217,7 @@ static int get_tcp_open_ports(u_int16_t *port_lst) {
 		return EXIT_FAILURE;
 	}
 
-	u_int16_t port_cnt = 0;
+	uint16_t port_cnt = 0;
 
 	while (fgets(line, sizeof(line), fp) != NULL) {
 		size_t n = strlen(line);
@@ -227,18 +227,18 @@ static int get_tcp_open_ports(u_int16_t *port_lst) {
 		line[n-1] = 0;
 
 		char *tmp = NULL;
-		u_int16_t lport, rport;
+		uint16_t lport, rport;
 
 		/* Ignore first colon */
 		if ((tmp = strchr(line, ':')) == NULL) { continue; }
 
 		/* Retrieve local port */
 		if ((tmp = strchr(tmp + 2, ':')) == NULL) { continue; }
-		sscanf(tmp + 1, "%"SCNu16, &lport);
+		sscanf(tmp + 1, "%hx", &lport);
 
 		/* Retrieve remote port */
 		if ((tmp = strchr(tmp + 2, ':')) == NULL) { continue; }
-		sscanf(tmp + 1, "%"SCNu16, &rport);
+		sscanf(tmp + 1, "%hx", &rport);
 
 		if (rport == 0) {
 			port_lst[port_cnt++] = lport;
