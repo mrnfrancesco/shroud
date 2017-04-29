@@ -77,7 +77,7 @@ int main(void) {
 	}
 	strncpy(filter, base_filter, strlen(base_filter));
 	for(int i = 0; i < port_cnt; ++i) {
-		snprintf(filter + strlen(filter) - 1, 26, port_exclude_fmt, port_lst[i]);
+		snprintf(filter + strlen(filter), 26, port_exclude_fmt, port_lst[i]);
 	}
 
     if (pcap_compile(pcap_handle, &fp, filter, 1, maskp) == -1) {
