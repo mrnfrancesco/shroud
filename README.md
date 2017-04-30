@@ -64,7 +64,12 @@ Nmap done: 1 IP address (1 host up) scanned in 10.88 seconds
 # Compiling
 You can compile **shroud** with:
 
-`cmake -DCMAKE_BUILD_TYPE=Debug -G "CodeBlocks - Unix Makefiles" <path to shroud project>`
+```
+mkdir build
+cd build
+cmake -DCMAKE_BUILD_TYPE=Debug -G "CodeBlocks - Unix Makefiles" <path to shroud project>
+make
+```
 
 # Running
 **shroud** needs *root* permission to run properly because of raw socket usage.
